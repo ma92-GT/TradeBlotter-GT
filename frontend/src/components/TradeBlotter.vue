@@ -1,17 +1,24 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useBlotterStore } from '@/stores/blotter'
-import { formatNotional, formatCurrency, formatQuantity, formatTimestamp } from '@/format'
+import { formatCurrency, formatNotional, formatQuantity, formatTimestamp } from '@/format'
 import type { Trade } from '@/types'
 
 type SortKey = 'timestamp' | 'symbol' | 'side' | 'quantity' | 'price' | 'notional'
 type SortDirection = 'asc' | 'desc'
 
-const { trades, isLoading, error } = storeToRefs(useBlotterStore())
+interface Column {
+  key: SortKey
+  label: string
+  numeric: boolean
+  /** Text reads naturally A→Z on first click; times and amounts are most useful newest/largest first. */
+  firstDirection: SortDirection
+}
 
-// Text reads naturally A→Z on first click; times and amounts are most useful newest/largest first.
-const columns: { key: SortKey; label: string; numeric: boolean; firstDirection: SortDirection }[] = [
+const { trades, isLoading, error, lastBookedTradeId } = storeToRefs(useBlotterStore())
+
+const columns: Column[] = [
   { key: 'timestamp', label: 'Time', numeric: false, firstDirection: 'desc' },
   { key: 'symbol', label: 'Symbol', numeric: false, firstDirection: 'asc' },
   { key: 'side', label: 'Side', numeric: false, firstDirection: 'asc' },
@@ -37,6 +44,7 @@ function sortValue(trade: Trade, key: SortKey): string | number {
   }
 }
 
+/** A sorted copy for display; the store's array is never reordered. */
 const sortedTrades = computed(() => {
   const key = sortKey.value
   const direction = sortDirection.value === 'asc' ? 1 : -1
@@ -45,11 +53,16 @@ const sortedTrades = computed(() => {
     const right = sortValue(b, key)
     const order =
       typeof left === 'string' ? left.localeCompare(String(right)) : left - Number(right)
-    return (order || a.id - b.id) * direction
+    return (order || a.id - b.id) * direction // ties: booking order
   })
 })
 
-function sortBy(column: (typeof columns)[number]) {
+const sortDescription = computed(() => {
+  const label = columns.find((column) => column.key === sortKey.value)?.label
+  return `sorted by ${label}, ${sortDirection.value === 'asc' ? 'ascending' : 'descending'}`
+})
+
+function sortBy(column: Column) {
   if (sortKey.value === column.key) {
     sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc'
   } else {
@@ -58,9 +71,23 @@ function sortBy(column: (typeof columns)[number]) {
   }
 }
 
+/** Only the sorted column carries aria-sort, as the ARIA spec recommends. */
 function ariaSort(key: SortKey) {
-  if (sortKey.value !== key) return 'none'
+  if (sortKey.value !== key) return undefined
   return sortDirection.value === 'asc' ? 'ascending' : 'descending'
+}
+
+// Each newly booked trade is highlighted once. The highlight is dropped when its fade ends, so
+// re-sorting (which moves rows and would restart a CSS animation) can't replay it.
+const highlightedTradeId = ref<number | null>(null)
+watch(lastBookedTradeId, (id) => {
+  highlightedTradeId.value = id
+})
+
+function onRowAnimationEnd(tradeId: number) {
+  if (highlightedTradeId.value === tradeId) {
+    highlightedTradeId.value = null
+  }
 }
 </script>
 
@@ -70,32 +97,43 @@ function ariaSort(key: SortKey) {
 
     <p v-if="isLoading && trades.length === 0" class="empty-state">Loading trades…</p>
     <p v-else-if="trades.length === 0" class="empty-state">
-      {{ error ? 'Trades are unavailable.' : 'No trades yet. Book your first trade with the New Trade form.' }}
+      {{ error ? 'Trades are unavailable.' : 'No trades yet. Book a trade to populate the blotter.' }}
     </p>
 
     <div v-else class="table-scroll">
       <table>
+        <caption class="visually-hidden">
+          Trades, {{ sortDescription }}
+        </caption>
         <thead>
           <tr>
             <th
               v-for="column in columns"
               :key="column.key"
+              scope="col"
               :class="{ numeric: column.numeric }"
               :aria-sort="ariaSort(column.key)"
             >
               <button type="button" class="sort-button" @click="sortBy(column)">
                 {{ column.label }}
-                <span aria-hidden="true">{{
-                  sortKey === column.key ? (sortDirection === 'asc' ? '▲' : '▼') : ''
-                }}</span>
+                <span
+                  :class="['sort-indicator', { active: sortKey === column.key }]"
+                  aria-hidden="true"
+                  >{{ sortKey !== column.key ? '↕' : sortDirection === 'asc' ? '▲' : '▼' }}</span
+                >
               </button>
             </th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="trade in sortedTrades" :key="trade.id">
-            <td :title="trade.timestamp">{{ formatTimestamp(trade.timestamp) }}</td>
-            <td>{{ trade.symbol }}</td>
+          <tr
+            v-for="trade in sortedTrades"
+            :key="trade.id"
+            :class="{ 'row-new': trade.id === highlightedTradeId }"
+            @animationend="onRowAnimationEnd(trade.id)"
+          >
+            <td class="time" :title="trade.timestamp">{{ formatTimestamp(trade.timestamp) }}</td>
+            <td class="symbol">{{ trade.symbol }}</td>
             <td>
               <span :class="['badge', trade.side.toLowerCase()]">{{ trade.side }}</span>
             </td>
