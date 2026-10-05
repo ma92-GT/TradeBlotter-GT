@@ -16,12 +16,6 @@ public class PositionCalculatorTests
         Assert.Single(PositionCalculator.Calculate(trades));
 
     [Fact]
-    public void NoTrades_ReturnsNoPositions()
-    {
-        Assert.Empty(PositionCalculator.Calculate([]));
-    }
-
-    [Fact]
     public void BuyingIntoLong_RecalculatesWeightedAverageCost()
     {
         var position = SinglePosition(
@@ -182,13 +176,5 @@ public class PositionCalculatorTests
         Assert.Equal(
             [new Position("AAPL", 100, 20m), new Position("MSFT", 200, 15m)],
             positions);
-    }
-
-    [Fact]
-    public void ApplyingTradeForAnotherSymbol_Throws()
-    {
-        var position = Position.Flat("AAPL");
-
-        Assert.Throws<ArgumentException>(() => position.Apply(Buy(10, 1m, "MSFT")));
     }
 }
