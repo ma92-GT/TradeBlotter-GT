@@ -1,7 +1,7 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { api, ApiError } from '@/api'
-import type { NewTrade, Position, Trade } from '@/types'
+import type { CreateTradeRequest, Position, Trade } from '@/types'
 
 /**
  * Server state for the blotter: trades, the positions derived from them, and request status.
@@ -48,7 +48,7 @@ export const useBlotterStore = defineStore('blotter', () => {
    * Books a trade, shows it at the top of the blotter and refreshes positions.
    * Rejects with the ApiError on failure so the form can show the server's field messages.
    */
-  async function submitTrade(newTrade: NewTrade): Promise<Trade> {
+  async function submitTrade(newTrade: CreateTradeRequest): Promise<Trade> {
     isSubmitting.value = true
     try {
       const trade = await api.createTrade(newTrade)

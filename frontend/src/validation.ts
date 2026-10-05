@@ -1,4 +1,4 @@
-import type { NewTrade, Side } from './types'
+import type { CreateTradeRequest, TradeSide } from './types'
 
 // Mirrors the server's rules (CreateTradeRequest) so most mistakes are caught before a round trip.
 // The server remains the authority; its messages are shown if it disagrees.
@@ -6,7 +6,7 @@ import type { NewTrade, Side } from './types'
 /** Raw form input. Numbers stay strings until validated so empty fields aren't mistaken for 0. */
 export interface TradeFormValues {
   symbol: string
-  side: Side
+  side: TradeSide
   quantity: string
   price: string
 }
@@ -15,7 +15,7 @@ export type TradeField = keyof TradeFormValues
 export type TradeFormErrors = Partial<Record<TradeField, string>>
 
 export type TradeValidationResult =
-  | { ok: true; trade: NewTrade }
+  | { ok: true; trade: CreateTradeRequest }
   | { ok: false; errors: TradeFormErrors }
 
 const SYMBOL_PATTERN = /^[A-Za-z][A-Za-z0-9.-]{0,9}$/

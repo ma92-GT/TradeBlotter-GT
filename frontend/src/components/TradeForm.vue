@@ -3,7 +3,7 @@ import { computed, reactive, ref, useTemplateRef, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { ApiError } from '@/api'
 import { useBlotterStore } from '@/stores/blotter'
-import type { Side } from '@/types'
+import type { TradeSide } from '@/types'
 import {
   validateTrade,
   type TradeField,
@@ -14,7 +14,7 @@ import {
 const store = useBlotterStore()
 const { isSubmitting } = storeToRefs(store)
 
-const sides: Side[] = ['Buy', 'Sell']
+const sides: TradeSide[] = ['Buy', 'Sell']
 const form = reactive<TradeFormValues>({ symbol: '', side: 'Buy', quantity: '', price: '' })
 
 // Errors appear once a field has been left or a submit was attempted, not while typing.

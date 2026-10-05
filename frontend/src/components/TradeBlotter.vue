@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useBlotterStore } from '@/stores/blotter'
-import { formatMoney, formatPrice, formatQuantity, formatTimestamp } from '@/format'
+import { formatNotional, formatCurrency, formatQuantity, formatTimestamp } from '@/format'
 import type { Trade } from '@/types'
 
 type SortKey = 'timestamp' | 'symbol' | 'side' | 'quantity' | 'price' | 'notional'
@@ -100,8 +100,8 @@ function ariaSort(key: SortKey) {
               <span :class="['badge', trade.side.toLowerCase()]">{{ trade.side }}</span>
             </td>
             <td class="numeric">{{ formatQuantity(trade.quantity) }}</td>
-            <td class="numeric">{{ formatPrice(trade.price) }}</td>
-            <td class="numeric">{{ formatMoney(notional(trade)) }}</td>
+            <td class="numeric">{{ formatCurrency(trade.price) }}</td>
+            <td class="numeric">{{ formatNotional(notional(trade)) }}</td>
           </tr>
         </tbody>
       </table>

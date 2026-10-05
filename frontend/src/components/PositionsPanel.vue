@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
 import { useBlotterStore } from '@/stores/blotter'
-import { formatPrice, formatSignedQuantity } from '@/format'
+import { formatCurrency, formatSignedQuantity } from '@/format'
 
 const { positions, isLoading, error } = storeToRefs(useBlotterStore())
 </script>
@@ -34,7 +34,7 @@ const { positions, isLoading, error } = storeToRefs(useBlotterStore())
               </span>
             </td>
             <td class="numeric">{{ formatSignedQuantity(position.quantity) }}</td>
-            <td class="numeric">{{ formatPrice(position.averageCost) }}</td>
+            <td class="numeric">{{ formatCurrency(position.averageCost) }}</td>
           </tr>
         </tbody>
       </table>

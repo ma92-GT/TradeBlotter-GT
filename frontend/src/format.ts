@@ -1,17 +1,18 @@
-// Formatters are created once; Intl.NumberFormat construction is comparatively expensive.
+// Display formatting. Each Intl formatter is built once at module load, not per render.
+// All amounts are USD; the API has no currency field.
 
-const money = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'USD',
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-})
-
-const price = new Intl.NumberFormat('en-US', {
+const currency = new Intl.NumberFormat('en-US', {
   style: 'currency',
   currency: 'USD',
   minimumFractionDigits: 2,
   maximumFractionDigits: 4,
+})
+
+const notional = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD',
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
 })
 
 const quantity = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 })
@@ -21,23 +22,37 @@ const signedQuantity = new Intl.NumberFormat('en-US', {
   signDisplay: 'exceptZero',
 })
 
-/** Totals such as notional: always 2 decimal places. */
-export const formatMoney = (value: number) => money.format(value)
+// No timeZone option: the browser's local time zone is used.
+const timestamp = new Intl.DateTimeFormat('en-US', {
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+  hourCycle: 'h23',
+})
 
-/** Prices and average costs: 2 to 4 decimal places. */
-export const formatPrice = (value: number) => price.format(value)
+/** Prices and average costs: $187.25, $300.125, $0.0001 (2 to 4 decimal places). */
+export const formatCurrency = (value: number) => currency.format(value)
 
+/** Notional amounts and totals: $18,725.00 (always 2 decimal places). */
+export const formatNotional = (value: number) => notional.format(value)
+
+/** Trade quantities and counts: 1,000. */
 export const formatQuantity = (value: number) => quantity.format(value)
 
-/** Position quantities, with an explicit sign: +100 long, −100 short. */
+/** Position quantities with an explicit direction: +100 long, -100 short. */
 export const formatSignedQuantity = (value: number) => signedQuantity.format(value)
 
-/** Local time as yyyy-MM-dd HH:mm:ss. */
+/**
+ * An API timestamp (ISO 8601, UTC) shown in the browser's local time as
+ * "yyyy-MM-dd HH:mm:ss". The ISO string itself is never modified.
+ */
 export function formatTimestamp(iso: string): string {
-  const date = new Date(iso)
-  const pad = (part: number) => String(part).padStart(2, '0')
-  return (
-    `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ` +
-    `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
-  )
+  const parts: Partial<Record<Intl.DateTimeFormatPartTypes, string>> = {}
+  for (const { type, value } of timestamp.formatToParts(new Date(iso))) {
+    parts[type] = value
+  }
+  return `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute}:${parts.second}`
 }
