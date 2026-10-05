@@ -34,12 +34,13 @@ describe('number formatting', () => {
     ])
   })
 
-  it('pads prices to 4 decimal places so decimal points can align', () => {
-    expect(['$571.30', '$300.125', '$452.6675'].map(priceDecimalPadding)).toEqual(['00', '0', ''])
+  it('pads prices only to the widest price in the column', () => {
+    expect(['$571.30', '$300.125', '$452.6675'].map((p) => priceDecimalPadding(p, 4))).toEqual(['00', '0', ''])
+    expect(['$571.30', '$188.40'].map((p) => priceDecimalPadding(p, 2))).toEqual(['', ''])
   })
 
-  it('shows average costs with exactly 4 decimal places', () => {
-    expect([45, 190.22, 10.666667].map(formatAverageCost)).toEqual(['$45.0000', '$190.2200', '$10.6667'])
+  it('shows average costs with exactly 2 decimal places', () => {
+    expect([45, 190.22, 10.666667].map(formatAverageCost)).toEqual(['$45.00', '$190.22', '$10.67'])
   })
 
   it('shows notional amounts with exactly 2 decimal places', () => {

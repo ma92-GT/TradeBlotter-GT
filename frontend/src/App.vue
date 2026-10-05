@@ -16,7 +16,9 @@ onMounted(store.load)
 <template>
   <header class="app-header">
     <h1>Trade Blotter</h1>
-    <p class="app-subtitle">USD · weighted-average cost</p>
+    <p class="app-subtitle">
+      <span>All amounts in USD</span> · <span>Positions use weighted-average cost</span>
+    </p>
   </header>
 
   <!-- Data already on screen stays visible; Retry reloads trades and positions. -->

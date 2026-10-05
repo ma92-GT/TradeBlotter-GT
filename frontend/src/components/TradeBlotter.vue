@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useBlotterStore } from '@/stores/blotter'
 import {
+  decimalPlaces,
   formatCurrency,
   formatNotional,
   formatQuantity,
@@ -38,6 +39,12 @@ const sortKey = ref<SortKey>('timestamp')
 const sortDirection = ref<SortDirection>('desc')
 
 const notional = (trade: Trade) => trade.quantity * trade.price
+
+// Prices show 2-4 decimals. Padding each one (invisibly) to the most decimals in the column lines
+// up the decimal points, and the header still ends on the same edge as the widest price.
+const priceDecimals = computed(() =>
+  Math.max(2, ...trades.value.map((trade) => decimalPlaces(formatCurrency(trade.price)))),
+)
 
 function sortValue(trade: Trade, key: SortKey): string | number {
   switch (key) {
@@ -147,7 +154,7 @@ function onRowAnimationEnd(tradeId: number) {
             <td class="numeric">
               {{ formatCurrency(trade.price)
               }}<span class="decimal-pad" aria-hidden="true">{{
-                priceDecimalPadding(formatCurrency(trade.price))
+                priceDecimalPadding(formatCurrency(trade.price), priceDecimals)
               }}</span>
             </td>
             <td class="numeric">{{ formatNotional(notional(trade)) }}</td>

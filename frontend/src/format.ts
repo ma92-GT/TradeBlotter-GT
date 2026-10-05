@@ -8,13 +8,6 @@ const currency = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 4,
 })
 
-const averageCost = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'USD',
-  minimumFractionDigits: 4,
-  maximumFractionDigits: 4,
-})
-
 const notional = new Intl.NumberFormat('en-US', {
   style: 'currency',
   currency: 'USD',
@@ -43,23 +36,27 @@ const timestamp = new Intl.DateTimeFormat('en-US', {
 /** Trade prices: $187.25, $300.125, $0.0001 (2 to 4 decimal places). */
 export const formatCurrency = (value: number) => currency.format(value)
 
-/**
- * Zeros that pad a formatCurrency() price out to its maximum of 4 decimal places. Rendered
- * invisibly, they make decimal points line up in a right-aligned price column.
- */
-export function priceDecimalPadding(formattedPrice: string): string {
-  const decimals = formattedPrice.length - formattedPrice.indexOf('.') - 1
-  return '0'.repeat(Math.max(0, 4 - decimals))
+/** Number of decimal places in a formatted amount such as "$300.125". */
+export function decimalPlaces(formatted: string): number {
+  return formatted.length - formatted.indexOf('.') - 1
 }
 
 /**
- * Position average cost: $190.2200 (always 4 decimal places, so decimal points align down the
- * column). The API rounds to 6; the exact value is available for a tooltip.
+ * Zeros that pad a formatted price to `columnDecimals` places. Rendered invisibly, they line up
+ * decimal points in a right-aligned column without padding past the widest value in it.
  */
-export const formatAverageCost = (value: number) => averageCost.format(value)
+export function priceDecimalPadding(formattedPrice: string, columnDecimals: number): string {
+  return '0'.repeat(Math.max(0, columnDecimals - decimalPlaces(formattedPrice)))
+}
 
-/** Notional amounts and totals: $18,725.00 (always 2 decimal places). */
+/** Notional amounts, totals and position average costs: $18,725.00 (always 2 decimal places). */
 export const formatNotional = (value: number) => notional.format(value)
+
+/**
+ * Position average cost for display: $190.22. Display only; the full-precision value from the
+ * API is kept and shown in the cell's tooltip.
+ */
+export const formatAverageCost = formatNotional
 
 /** Trade quantities and counts: 1,000. */
 export const formatQuantity = (value: number) => quantity.format(value)
