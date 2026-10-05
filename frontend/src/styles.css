@@ -1,9 +1,27 @@
 /* Functional baseline only: layout, readable tables, right-aligned numbers. Visual design comes later. */
 
+:root {
+  --positive: #127a46;
+  --positive-tint: #e6f4ec;
+  --negative: #c42b2b;
+  --negative-tint: #fbe9e9;
+  --border: #bcc5d0;
+  --muted: #616e7c;
+}
+
 *,
 *::before,
 *::after {
   box-sizing: border-box;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 body {
@@ -88,9 +106,9 @@ h2 {
   gap: 12px;
   margin: 0 0 16px;
   padding: 8px 12px;
-  border: 1px solid #e12d39;
+  border: 1px solid var(--negative);
   border-radius: 6px;
-  background: #ffe3e3;
+  background: var(--negative-tint);
 }
 
 /* Form */
@@ -99,39 +117,129 @@ h2 {
   gap: 12px;
 }
 
-.side-choice {
-  display: flex;
-  gap: 16px;
+.field {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
   margin: 0;
   padding: 0;
   border: 0;
 }
 
-.side-choice legend {
+.field legend {
   margin-bottom: 4px;
-}
-
-.field {
-  display: grid;
-  gap: 4px;
+  padding: 0;
 }
 
 .field input {
   padding: 6px 8px;
   font: inherit;
-  border: 1px solid #bcc5d0;
+  border: 1px solid var(--border);
   border-radius: 4px;
 }
 
 .field input[aria-invalid='true'] {
-  border-color: #e12d39;
+  border-color: var(--negative);
+}
+
+.symbol-input {
+  text-transform: uppercase;
+}
+
+.symbol-input::placeholder {
+  text-transform: none;
 }
 
 .field-error,
 .form-error {
   margin: 0;
   font-size: 12px;
-  color: #c81e2a;
+  color: var(--negative);
+}
+
+/* BUY / SELL: words always shown; colour reinforces, the filled state marks the selection. */
+.side-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.side-option {
+  position: relative; /* anchors the visually hidden radio */
+}
+
+.side-option span {
+  display: block;
+  padding: 7px 0;
+  text-align: center;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.side-option.buy span {
+  color: var(--positive);
+}
+
+.side-option.sell span {
+  color: var(--negative);
+}
+
+.side-option.buy input:checked + span {
+  color: #fff;
+  background: var(--positive);
+  border-color: var(--positive);
+}
+
+.side-option.sell input:checked + span {
+  color: #fff;
+  background: var(--negative);
+  border-color: var(--negative);
+}
+
+.side-option input:focus-visible + span {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.notional-preview {
+  display: flex;
+  justify-content: space-between;
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* Tinted rather than solid, so the side is clear without the button shouting. */
+.submit-button {
+  padding: 8px;
+  font: inherit;
+  font-weight: 600;
+  color: #1f2933;
+  background: #eef1f4;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.submit-button.buy {
+  color: var(--positive);
+  background: var(--positive-tint);
+  border-color: var(--positive);
+}
+
+.submit-button.sell {
+  color: var(--negative);
+  background: var(--negative-tint);
+  border-color: var(--negative);
+}
+
+.submit-button:disabled {
+  cursor: progress;
+  opacity: 0.7;
 }
 
 /* Tables */

@@ -3,8 +3,13 @@ import { computed, reactive, ref, useTemplateRef, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { ApiError } from '@/api'
 import { useBlotterStore } from '@/stores/blotter'
+import { formatNotional } from '@/format'
 import type { TradeSide } from '@/types'
 import {
+  mapServerErrors,
+  parsePrice,
+  parseQuantity,
+  TRADE_FIELDS,
   validateTrade,
   type TradeField,
   type TradeFormErrors,
@@ -14,11 +19,21 @@ import {
 const store = useBlotterStore()
 const { isSubmitting } = storeToRefs(store)
 
-const sides: TradeSide[] = ['Buy', 'Sell']
-const form = reactive<TradeFormValues>({ symbol: '', side: 'Buy', quantity: '', price: '' })
+const sides: { value: TradeSide; label: string }[] = [
+  { value: 'Buy', label: 'BUY' },
+  { value: 'Sell', label: 'SELL' },
+]
 
-// Errors appear once a field has been left or a submit was attempted, not while typing.
-const touched = reactive<Partial<Record<TradeField, boolean>>>({})
+// No side is preselected: the first trade's direction should be a deliberate choice.
+const form = reactive<TradeFormValues>({ symbol: '', side: '', quantity: '', price: '' })
+
+// Client errors appear once a field has been left or a submit was attempted, not while typing.
+const touched = reactive<Record<TradeField, boolean>>({
+  symbol: false,
+  side: false,
+  quantity: false,
+  price: false,
+})
 const submitAttempted = ref(false)
 const serverErrors = ref<TradeFormErrors>({})
 const formError = ref<string | null>(null)
@@ -29,20 +44,44 @@ const validation = computed(() => validateTrade(form))
 const visibleErrors = computed<TradeFormErrors>(() => {
   const clientErrors = validation.value.ok ? {} : validation.value.errors
   const errors: TradeFormErrors = {}
-  for (const field of ['symbol', 'side', 'quantity', 'price'] as const) {
-    const message = serverErrors.value[field] ?? clientErrors[field]
-    if (message && (submitAttempted.value || touched[field] || serverErrors.value[field])) {
+  for (const field of TRADE_FIELDS) {
+    const showClientError = submitAttempted.value || touched[field]
+    const message = serverErrors.value[field] ?? (showClientError ? clientErrors[field] : undefined)
+    if (message) {
       errors[field] = message
     }
   }
   return errors
 })
 
-// Server messages describe the values that were sent; drop them once the user edits the form.
-watch(form, () => {
-  serverErrors.value = {}
-  formError.value = null
+const estimatedNotional = computed(() => {
+  const quantity = parseQuantity(form.quantity)
+  const price = parsePrice(form.price)
+  return quantity === null || price === null ? null : quantity * price
 })
+
+const submitLabel = computed(() => {
+  if (isSubmitting.value) return 'Booking…'
+  return form.side ? `Book ${form.side}` : 'Book Trade'
+})
+
+// A server message describes the value that was sent; drop it once that field is edited.
+for (const field of TRADE_FIELDS) {
+  watch(
+    () => form[field],
+    () => {
+      serverErrors.value = { ...serverErrors.value, [field]: undefined }
+      formError.value = null
+    },
+  )
+}
+
+// Shown upper-case while typing (CSS); the value itself is normalised when the field is left,
+// so the caret never jumps mid-edit.
+function onSymbolBlur() {
+  form.symbol = form.symbol.trim().toUpperCase()
+  touched.symbol = true
+}
 
 async function submit() {
   submitAttempted.value = true
@@ -54,33 +93,32 @@ async function submit() {
 
   try {
     await store.submitTrade(result.trade)
-    // Keep symbol and side for quick follow-up orders; clear the amounts.
-    form.quantity = ''
-    form.price = ''
-    submitAttempted.value = false
-    touched.quantity = false
-    touched.price = false
-    quantityInput.value?.focus()
   } catch (e) {
     showSubmitError(e)
+    return
   }
+
+  // Ready for the next order: same symbol and side, new amounts.
+  form.quantity = ''
+  form.price = ''
+  touched.quantity = false
+  touched.price = false
+  submitAttempted.value = false
+  quantityInput.value?.focus()
 }
 
 function showSubmitError(e: unknown) {
   if (!(e instanceof ApiError)) {
-    formError.value = 'Unexpected error. The trade was not booked.'
+    formError.value = 'The trade was not booked because of an unexpected error.'
     return
   }
 
-  const fieldErrors: TradeFormErrors = {}
-  for (const [key, messages] of Object.entries(e.fieldErrors)) {
-    if (key in form && messages[0]) {
-      fieldErrors[key as TradeField] = messages[0]
-    }
-  }
+  const { fieldErrors, otherErrors } = mapServerErrors(e.fieldErrors)
   serverErrors.value = fieldErrors
-  if (Object.keys(fieldErrors).length === 0) {
-    formError.value = `${e.message} The trade was not booked.`
+  if (otherErrors.length > 0) {
+    formError.value = `The trade was not booked. ${otherErrors.join(' ')}`
+  } else if (Object.keys(fieldErrors).length === 0) {
+    formError.value = `The trade was not booked. ${e.message}`
   }
 }
 </script>
@@ -89,24 +127,41 @@ function showSubmitError(e: unknown) {
   <form class="panel trade-form" novalidate @submit.prevent="submit">
     <h2>New Trade</h2>
 
-    <fieldset class="side-choice">
+    <fieldset class="field">
       <legend>Side</legend>
-      <label v-for="side in sides" :key="side" :class="['side-option', side.toLowerCase()]">
-        <input v-model="form.side" type="radio" name="side" :value="side" />
-        {{ side }}
-      </label>
+      <div class="side-toggle">
+        <label
+          v-for="side in sides"
+          :key="side.value"
+          :class="['side-option', side.value.toLowerCase()]"
+        >
+          <input
+            v-model="form.side"
+            class="visually-hidden"
+            type="radio"
+            name="side"
+            :value="side.value"
+            @blur="touched.side = true"
+          />
+          <span>{{ side.label }}</span>
+        </label>
+      </div>
+      <span v-if="visibleErrors.side" class="field-error">{{ visibleErrors.side }}</span>
     </fieldset>
 
     <label class="field">
       <span>Symbol</span>
       <input
         v-model="form.symbol"
+        class="symbol-input"
         type="text"
+        maxlength="10"
         autocomplete="off"
+        autocapitalize="characters"
         spellcheck="false"
         placeholder="AAPL"
         :aria-invalid="!!visibleErrors.symbol"
-        @blur="touched.symbol = true"
+        @blur="onSymbolBlur"
       />
       <span v-if="visibleErrors.symbol" class="field-error">{{ visibleErrors.symbol }}</span>
     </label>
@@ -140,10 +195,21 @@ function showSubmitError(e: unknown) {
       <span v-if="visibleErrors.price" class="field-error">{{ visibleErrors.price }}</span>
     </label>
 
+    <p class="notional-preview">
+      Estimated Notional:
+      <span class="numeric">{{
+        estimatedNotional === null ? '—' : formatNotional(estimatedNotional)
+      }}</span>
+    </p>
+
     <p v-if="formError" class="form-error" role="alert">{{ formError }}</p>
 
-    <button type="submit" :disabled="isSubmitting">
-      {{ isSubmitting ? 'Booking…' : 'Book Trade' }}
+    <button
+      type="submit"
+      :class="['submit-button', form.side.toLowerCase()]"
+      :disabled="isSubmitting"
+    >
+      {{ submitLabel }}
     </button>
   </form>
 </template>
