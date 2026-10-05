@@ -192,7 +192,8 @@ trades, buys and sells both adding.
 - **Server-generated ids and timestamps.** The client sends only symbol, side, quantity and price.
   The database identity doubles as the deterministic replay order.
 - **`decimal` for prices and costs**, never `double`. The domain keeps full precision; the API
-  rounds `averageCost` to 6 decimal places and the UI displays 4.
+  rounds `averageCost` to 6 decimal places, and the UI displays it with 2 (the full value is in a
+  tooltip).
 - **SQLite** keeps the exercise zero-setup. Positions are calculated in memory, so SQLite's storage of
   `decimal` as text does not affect the arithmetic.
 - **Controllers with DataAnnotations** give `[ApiController]`'s automatic `400` problem details in
@@ -235,4 +236,7 @@ trades, buys and sells both adding.
 ## AI Tooling
 
 This project was built with Claude Code, from planning through implementation, tests and this
-README. The full Claude Code session transcript is provided with the submission.
+README. The full session transcript is in
+[`docs/claude-code-transcript.md`](docs/claude-code-transcript.md): every prompt, every reply and
+every tool call, exported from the Claude Code session log. Long tool outputs are truncated,
+screenshots appear as `[image]`, and the model's internal reasoning is omitted.
