@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "backend", "backend", "{272D1D1E-94D7-4486-B357-1A685721EEB8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TradeBlotter.Api", "backend\TradeBlotter.Api\TradeBlotter.Api.csproj", "{72A89E88-C71D-4A57-87F3-5F2DFD7EB6C1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TradeBlotter.Api.Tests", "backend\TradeBlotter.Api.Tests\TradeBlotter.Api.Tests.csproj", "{4A3BDED2-D7A8-4B52-8A68-B49937F54497}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{72A89E88-C71D-4A57-87F3-5F2DFD7EB6C1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{72A89E88-C71D-4A57-87F3-5F2DFD7EB6C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{72A89E88-C71D-4A57-87F3-5F2DFD7EB6C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{72A89E88-C71D-4A57-87F3-5F2DFD7EB6C1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4A3BDED2-D7A8-4B52-8A68-B49937F54497}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4A3BDED2-D7A8-4B52-8A68-B49937F54497}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4A3BDED2-D7A8-4B52-8A68-B49937F54497}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4A3BDED2-D7A8-4B52-8A68-B49937F54497}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{72A89E88-C71D-4A57-87F3-5F2DFD7EB6C1} = {272D1D1E-94D7-4486-B357-1A685721EEB8}
+		{4A3BDED2-D7A8-4B52-8A68-B49937F54497} = {272D1D1E-94D7-4486-B357-1A685721EEB8}
+	EndGlobalSection
+EndGlobal
