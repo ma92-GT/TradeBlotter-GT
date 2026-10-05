@@ -8,6 +8,13 @@ const currency = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 4,
 })
 
+const averageCost = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD',
+  minimumFractionDigits: 4,
+  maximumFractionDigits: 4,
+})
+
 const notional = new Intl.NumberFormat('en-US', {
   style: 'currency',
   currency: 'USD',
@@ -33,8 +40,14 @@ const timestamp = new Intl.DateTimeFormat('en-US', {
   hourCycle: 'h23',
 })
 
-/** Prices and average costs: $187.25, $300.125, $0.0001 (2 to 4 decimal places). */
+/** Trade prices: $187.25, $300.125, $0.0001 (2 to 4 decimal places). */
 export const formatCurrency = (value: number) => currency.format(value)
+
+/**
+ * Position average cost: $190.2200 (always 4 decimal places, so decimal points align down the
+ * column). The API rounds to 6; the exact value is available for a tooltip.
+ */
+export const formatAverageCost = (value: number) => averageCost.format(value)
 
 /** Notional amounts and totals: $18,725.00 (always 2 decimal places). */
 export const formatNotional = (value: number) => notional.format(value)

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  formatAverageCost,
   formatCurrency,
   formatNotional,
   formatQuantity,
@@ -30,6 +31,10 @@ describe('number formatting', () => {
       '$0.0001',
       '$10.6667',
     ])
+  })
+
+  it('shows average costs with exactly 4 decimal places', () => {
+    expect([45, 190.22, 10.666667].map(formatAverageCost)).toEqual(['$45.0000', '$190.2200', '$10.6667'])
   })
 
   it('shows notional amounts with exactly 2 decimal places', () => {
