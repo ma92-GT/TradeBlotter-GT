@@ -3,7 +3,7 @@ import { storeToRefs } from 'pinia'
 import { useBlotterStore } from '@/stores/blotter'
 import { formatNotional, formatQuantity } from '@/format'
 
-const { totalTrades, grossNotional, activePositionCount } = storeToRefs(useBlotterStore())
+const { totalTrades, grossNotional, activePositions } = storeToRefs(useBlotterStore())
 </script>
 
 <template>
@@ -18,7 +18,7 @@ const { totalTrades, grossNotional, activePositionCount } = storeToRefs(useBlott
     </div>
     <div class="metric">
       <span class="metric-label">Active Positions</span>
-      <span class="metric-value numeric">{{ formatQuantity(activePositionCount) }}</span>
+      <span class="metric-value numeric">{{ formatQuantity(activePositions) }}</span>
     </div>
   </section>
 </template>
