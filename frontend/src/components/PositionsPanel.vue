@@ -19,7 +19,7 @@ const isLong = (position: Position) => position.quantity > 0
       {{ error ? 'Positions are unavailable.' : 'No active positions.' }}
     </p>
 
-    <div v-else class="table-scroll">
+    <div v-else class="table-scroll" role="region" aria-label="Positions table" tabindex="0">
       <table>
         <thead>
           <tr>

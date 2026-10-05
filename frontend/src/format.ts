@@ -44,6 +44,15 @@ const timestamp = new Intl.DateTimeFormat('en-US', {
 export const formatCurrency = (value: number) => currency.format(value)
 
 /**
+ * Zeros that pad a formatCurrency() price out to its maximum of 4 decimal places. Rendered
+ * invisibly, they make decimal points line up in a right-aligned price column.
+ */
+export function priceDecimalPadding(formattedPrice: string): string {
+  const decimals = formattedPrice.length - formattedPrice.indexOf('.') - 1
+  return '0'.repeat(Math.max(0, 4 - decimals))
+}
+
+/**
  * Position average cost: $190.2200 (always 4 decimal places, so decimal points align down the
  * column). The API rounds to 6; the exact value is available for a tooltip.
  */

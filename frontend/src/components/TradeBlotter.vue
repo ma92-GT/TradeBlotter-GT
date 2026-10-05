@@ -2,7 +2,13 @@
 import { computed, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useBlotterStore } from '@/stores/blotter'
-import { formatCurrency, formatNotional, formatQuantity, formatTimestamp } from '@/format'
+import {
+  formatCurrency,
+  formatNotional,
+  formatQuantity,
+  formatTimestamp,
+  priceDecimalPadding,
+} from '@/format'
 import type { Trade } from '@/types'
 
 type SortKey = 'timestamp' | 'symbol' | 'side' | 'quantity' | 'price' | 'notional'
@@ -93,14 +99,14 @@ function onRowAnimationEnd(tradeId: number) {
 
 <template>
   <section class="panel blotter">
-    <h2>Trade Blotter</h2>
+    <h2>Trades</h2>
 
     <p v-if="isLoading && trades.length === 0" class="empty-state">Loading trades…</p>
     <p v-else-if="trades.length === 0" class="empty-state">
       {{ error ? 'Trades are unavailable.' : 'No trades yet. Book a trade to populate the blotter.' }}
     </p>
 
-    <div v-else class="table-scroll">
+    <div v-else class="table-scroll" role="region" aria-label="Trades table" tabindex="0">
       <table>
         <caption class="visually-hidden">
           Trades, {{ sortDescription }}
@@ -138,7 +144,12 @@ function onRowAnimationEnd(tradeId: number) {
               <span :class="['badge', trade.side.toLowerCase()]">{{ trade.side }}</span>
             </td>
             <td class="numeric">{{ formatQuantity(trade.quantity) }}</td>
-            <td class="numeric">{{ formatCurrency(trade.price) }}</td>
+            <td class="numeric">
+              {{ formatCurrency(trade.price)
+              }}<span class="decimal-pad" aria-hidden="true">{{
+                priceDecimalPadding(formatCurrency(trade.price))
+              }}</span>
+            </td>
             <td class="numeric">{{ formatNotional(notional(trade)) }}</td>
           </tr>
         </tbody>

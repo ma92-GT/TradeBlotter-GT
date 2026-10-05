@@ -16,12 +16,19 @@ onMounted(store.load)
 <template>
   <header class="app-header">
     <h1>Trade Blotter</h1>
+    <p class="app-subtitle">USD · weighted-average cost</p>
   </header>
 
-  <p v-if="error" class="error-banner" role="alert">
-    {{ error }}
-    <button type="button" :disabled="isLoading" @click="store.load">Retry</button>
-  </p>
+  <!-- Data already on screen stays visible; Retry reloads trades and positions. -->
+  <div v-if="error" class="error-banner" role="alert">
+    <p>
+      <strong>Trade data could not be loaded.</strong>
+      <span>{{ error }}</span>
+    </p>
+    <button type="button" class="secondary-button" :disabled="isLoading" @click="store.load">
+      Retry
+    </button>
+  </div>
 
   <SummaryBar />
 

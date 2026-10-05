@@ -3,7 +3,7 @@ import { computed, reactive, ref, useTemplateRef, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { ApiError } from '@/api'
 import { useBlotterStore } from '@/stores/blotter'
-import { formatNotional } from '@/format'
+import { formatCurrency, formatNotional, formatQuantity } from '@/format'
 import type { TradeSide } from '@/types'
 import {
   mapServerErrors,
@@ -27,7 +27,8 @@ const sides: { value: TradeSide; label: string }[] = [
 // No side is preselected: the first trade's direction should be a deliberate choice.
 const form = reactive<TradeFormValues>({ symbol: '', side: '', quantity: '', price: '' })
 
-// Client errors appear once a field has been left or a submit was attempted, not while typing.
+// Client errors appear after a submit attempt, or once a field with something in it has been left.
+// Leaving an empty field is not an error until the user tries to book.
 const touched = reactive<Record<TradeField, boolean>>({
   symbol: false,
   side: false,
@@ -37,6 +38,8 @@ const touched = reactive<Record<TradeField, boolean>>({
 const submitAttempted = ref(false)
 const serverErrors = ref<TradeFormErrors>({})
 const formError = ref<string | null>(null)
+/** Confirms the last booking next to the form (and to screen readers via role="status"). */
+const bookedMessage = ref('')
 const quantityInput = useTemplateRef<HTMLInputElement>('quantity-input')
 
 const validation = computed(() => validateTrade(form))
@@ -45,7 +48,7 @@ const visibleErrors = computed<TradeFormErrors>(() => {
   const clientErrors = validation.value.ok ? {} : validation.value.errors
   const errors: TradeFormErrors = {}
   for (const field of TRADE_FIELDS) {
-    const showClientError = submitAttempted.value || touched[field]
+    const showClientError = submitAttempted.value || (touched[field] && form[field].trim() !== '')
     const message = serverErrors.value[field] ?? (showClientError ? clientErrors[field] : undefined)
     if (message) {
       errors[field] = message
@@ -86,17 +89,22 @@ function onSymbolBlur() {
 async function submit() {
   submitAttempted.value = true
   formError.value = null
+  bookedMessage.value = ''
   const result = validation.value
   if (!result.ok || isSubmitting.value) {
     return
   }
 
+  let trade
   try {
-    await store.submitTrade(result.trade)
+    trade = await store.submitTrade(result.trade)
   } catch (e) {
     showSubmitError(e)
     return
   }
+  bookedMessage.value =
+    `Booked ${trade.side.toUpperCase()} ${formatQuantity(trade.quantity)} ${trade.symbol} ` +
+    `@ ${formatCurrency(trade.price)}`
 
   // Ready for the next order: same symbol and side, new amounts.
   form.quantity = ''
@@ -159,41 +167,41 @@ function showSubmitError(e: unknown) {
         autocomplete="off"
         autocapitalize="characters"
         spellcheck="false"
-        placeholder="AAPL"
+        placeholder="e.g. AAPL"
         :aria-invalid="!!visibleErrors.symbol"
         @blur="onSymbolBlur"
       />
       <span v-if="visibleErrors.symbol" class="field-error">{{ visibleErrors.symbol }}</span>
     </label>
 
-    <label class="field">
-      <span>Quantity</span>
-      <input
-        ref="quantity-input"
-        v-model="form.quantity"
-        type="text"
-        inputmode="numeric"
-        autocomplete="off"
-        placeholder="100"
-        :aria-invalid="!!visibleErrors.quantity"
-        @blur="touched.quantity = true"
-      />
-      <span v-if="visibleErrors.quantity" class="field-error">{{ visibleErrors.quantity }}</span>
-    </label>
+    <div class="field-row">
+      <label class="field">
+        <span>Quantity</span>
+        <input
+          ref="quantity-input"
+          v-model="form.quantity"
+          type="text"
+          inputmode="numeric"
+          autocomplete="off"
+          :aria-invalid="!!visibleErrors.quantity"
+          @blur="touched.quantity = true"
+        />
+        <span v-if="visibleErrors.quantity" class="field-error">{{ visibleErrors.quantity }}</span>
+      </label>
 
-    <label class="field">
-      <span>Price</span>
-      <input
-        v-model="form.price"
-        type="text"
-        inputmode="decimal"
-        autocomplete="off"
-        placeholder="187.25"
-        :aria-invalid="!!visibleErrors.price"
-        @blur="touched.price = true"
-      />
-      <span v-if="visibleErrors.price" class="field-error">{{ visibleErrors.price }}</span>
-    </label>
+      <label class="field">
+        <span>Price</span>
+        <input
+          v-model="form.price"
+          type="text"
+          inputmode="decimal"
+          autocomplete="off"
+          :aria-invalid="!!visibleErrors.price"
+          @blur="touched.price = true"
+        />
+        <span v-if="visibleErrors.price" class="field-error">{{ visibleErrors.price }}</span>
+      </label>
+    </div>
 
     <p class="notional-preview">
       Estimated Notional:
@@ -211,5 +219,7 @@ function showSubmitError(e: unknown) {
     >
       {{ submitLabel }}
     </button>
+
+    <p class="form-status" role="status">{{ bookedMessage }}</p>
   </form>
 </template>

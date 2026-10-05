@@ -1,18 +1,63 @@
-/* Functional baseline only: layout, readable tables, right-aligned numbers. Visual design comes later. */
+/*
+ * Dark, compact trading UI. All colours are tokens; text colours are chosen for WCAG AA contrast
+ * on the panel background. Green/red always accompany text (BUY/SELL, LONG/SHORT, +/−).
+ */
 
 :root {
-  --positive: #127a46;
-  --positive-tint: #e6f4ec;
-  --negative: #c42b2b;
-  --negative-tint: #fbe9e9;
-  --border: #bcc5d0;
-  --muted: #616e7c;
+  color-scheme: dark;
+
+  --bg: #0b0f14;
+  --panel: #121820;
+  --panel-raised: #18202a;
+  --input: #0d1218;
+  --border: #222c38;
+  --border-strong: #324051;
+  --border-input: #5b6b80; /* 3:1 against the panel, so form controls are clearly outlined */
+  --text: #e3e9f0;
+  --text-muted: #9aa6b6;
+  --focus: #5aa9ff;
+
+  --positive: #3fbf8f;
+  --positive-tint: rgb(63 191 143 / 0.14);
+  --negative: #f2676f;
+  --negative-tint: rgb(242 103 111 / 0.14);
+  --highlight: rgb(240 196 64 / 0.03); /* kept faint so BUY/SELL badge text stays above 4.5:1 */
+  --highlight-marker: rgb(240 196 64);
+
+  --radius: 6px;
+  --gap: 16px;
 }
 
 *,
 *::before,
 *::after {
   box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text);
+  background: var(--bg);
+}
+
+#app {
+  max-width: 1680px;
+  margin: 0 auto;
+  padding: var(--gap);
+}
+
+h1,
+h2,
+p {
+  margin: 0;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
 }
 
 .visually-hidden {
@@ -24,41 +69,135 @@
   white-space: nowrap;
 }
 
-body {
-  margin: 0;
-  padding: 16px;
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  font-size: 14px;
-  color: #1f2933;
-  background: #f5f7fa;
+.numeric {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
-h1,
-h2 {
-  margin: 0 0 12px;
+.positive {
+  color: var(--positive);
 }
 
-h1 {
-  font-size: 20px;
+.negative {
+  color: var(--negative);
 }
 
-h2 {
-  font-size: 15px;
+/* Page structure */
+.app-header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.app-header h1 {
+  font-size: 18px;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+}
+
+.app-subtitle {
+  color: var(--text-muted);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 360px minmax(0, 1fr); /* the blotter gets the remaining width */
+  gap: var(--gap);
+  align-items: start;
+}
+
+.sidebar {
+  display: grid;
+  gap: var(--gap);
+  min-width: 0;
+}
+
+@media (max-width: 1023px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 479px) {
+  .panel {
+    padding: 12px;
+  }
+
+  th,
+  td {
+    padding: 6px;
+  }
 }
 
 .panel {
-  background: #fff;
-  border: 1px solid #d9dee5;
-  border-radius: 6px;
-  padding: 16px;
+  min-width: 0;
+  padding: 14px 16px 16px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.panel h2 {
+  margin-bottom: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* Load-error banner */
+.error-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 10px 14px;
+  background: var(--negative-tint);
+  border: 1px solid var(--negative);
+  border-radius: var(--radius);
+}
+
+.error-banner p {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+}
+
+.error-banner strong {
+  color: var(--negative);
+}
+
+.secondary-button {
+  flex-shrink: 0;
+  height: 28px;
+  padding: 0 14px;
+  font: inherit;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--panel-raised);
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.secondary-button:hover {
+  border-color: var(--text-muted);
+}
+
+.secondary-button:disabled {
+  cursor: progress;
+  opacity: 0.6;
 }
 
 /* Summary: one compact strip of key figures, not a row of dashboard cards. */
 .summary-bar {
-  margin-bottom: 16px;
-  background: #fff;
-  border: 1px solid #d9dee5;
-  border-radius: 6px;
+  margin-bottom: var(--gap);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
 }
 
 .summary-bar dl {
@@ -71,58 +210,44 @@ h2 {
   display: flex;
   align-items: baseline;
   gap: 10px;
-  padding: 8px 20px;
+  padding: 9px 20px;
 }
 
 .metric + .metric {
-  border-left: 1px solid #e9ecf0;
+  border-left: 1px solid var(--border);
 }
 
 .metric dt {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--text-muted);
 }
 
 .metric dd {
   margin: 0;
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 650;
 }
 
-.layout {
-  display: grid;
-  grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
-  gap: 16px;
-  align-items: start;
-}
+@media (max-width: 639px) {
+  .summary-bar dl {
+    flex-direction: column;
+  }
 
-.sidebar {
-  display: grid;
-  gap: 16px;
-}
+  .metric {
+    justify-content: space-between;
+    padding: 7px 14px;
+  }
 
-@media (max-width: 900px) {
-  .layout {
-    grid-template-columns: 1fr;
+  .metric + .metric {
+    border-left: 0;
+    border-top: 1px solid var(--border);
   }
 }
 
-.error-banner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin: 0 0 16px;
-  padding: 8px 12px;
-  border: 1px solid var(--negative);
-  border-radius: 6px;
-  background: var(--negative-tint);
-}
-
-/* Form */
+/* Trade form */
 .trade-form {
   display: grid;
   gap: 12px;
@@ -137,16 +262,43 @@ h2 {
   border: 0;
 }
 
+.field > span:first-child,
 .field legend {
-  margin-bottom: 4px;
   padding: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  align-items: start;
 }
 
 .field input {
-  padding: 6px 8px;
+  width: 100%;
+  height: 32px;
+  padding: 0 10px;
   font: inherit;
-  border: 1px solid var(--border);
+  font-size: 14px;
+  color: var(--text);
+  background: var(--input);
+  border: 1px solid var(--border-input);
   border-radius: 4px;
+}
+
+.field input::placeholder {
+  color: #7d8a9b;
+}
+
+.field input:hover {
+  border-color: #7d8ea4;
+}
+
+.field input:focus {
+  border-color: var(--focus);
 }
 
 .field input[aria-invalid='true'] {
@@ -154,16 +306,18 @@ h2 {
 }
 
 .symbol-input {
+  font-weight: 600;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
 }
 
 .symbol-input::placeholder {
+  font-weight: 400;
   text-transform: none;
 }
 
 .field-error,
 .form-error {
-  margin: 0;
   font-size: 12px;
   color: var(--negative);
 }
@@ -180,12 +334,13 @@ h2 {
 }
 
 .side-option span {
-  display: block;
-  padding: 7px 0;
-  text-align: center;
+  display: grid;
+  place-items: center;
+  height: 32px;
   font-weight: 700;
-  letter-spacing: 0.05em;
-  border: 1px solid var(--border);
+  letter-spacing: 0.08em;
+  background: transparent;
+  border: 1px solid var(--border-input);
   border-radius: 4px;
   cursor: pointer;
   user-select: none;
@@ -199,39 +354,61 @@ h2 {
   color: var(--negative);
 }
 
+.side-option.buy span:hover {
+  border-color: var(--positive);
+}
+
+.side-option.sell span:hover {
+  border-color: var(--negative);
+}
+
+/* Dark text on the filled colour keeps contrast above 7:1. */
 .side-option.buy input:checked + span {
-  color: #fff;
+  color: var(--bg);
   background: var(--positive);
   border-color: var(--positive);
 }
 
 .side-option.sell input:checked + span {
-  color: #fff;
+  color: var(--bg);
   background: var(--negative);
   border-color: var(--negative);
 }
 
 .side-option input:focus-visible + span {
-  outline: 2px solid #3b82f6;
+  outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
 
 .notional-preview {
   display: flex;
   justify-content: space-between;
-  margin: 0;
-  font-size: 13px;
-  color: var(--muted);
+  padding-top: 10px;
+  color: var(--text-muted);
+  border-top: 1px dashed var(--border-strong);
+}
+
+.notional-preview .numeric {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.form-status {
+  min-height: 1.4em; /* reserved so the form doesn't jump when a booking is confirmed */
+  margin-top: -4px;
+  font-size: 12px;
+  color: var(--text-muted);
 }
 
 /* Tinted rather than solid, so the side is clear without the button shouting. */
 .submit-button {
-  padding: 8px;
+  height: 34px;
   font: inherit;
-  font-weight: 600;
-  color: #1f2933;
-  background: #eef1f4;
-  border: 1px solid var(--border);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text);
+  background: var(--panel-raised);
+  border: 1px solid var(--border-strong);
   border-radius: 4px;
   cursor: pointer;
 }
@@ -248,14 +425,18 @@ h2 {
   border-color: var(--negative);
 }
 
+.submit-button:hover:not(:disabled) {
+  filter: brightness(1.15);
+}
+
 .submit-button:disabled {
   cursor: progress;
-  opacity: 0.7;
+  opacity: 0.6;
 }
 
 /* Tables: compact rows, hairline separators, numbers right-aligned in tabular figures. */
 .table-scroll {
-  overflow-x: auto;
+  overflow-x: auto; /* wide tables scroll inside their panel, never the page */
 }
 
 table {
@@ -265,37 +446,66 @@ table {
 
 th,
 td {
-  padding: 6px 10px;
+  padding: 6px 8px;
   text-align: left;
   white-space: nowrap;
-  border-bottom: 1px solid #e9ecf0;
+  border-bottom: 1px solid var(--border);
 }
 
 th {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--muted);
-  border-bottom-color: var(--border);
+  color: var(--text-muted);
+  background: var(--panel);
+  border-bottom-color: var(--border-strong);
+}
+
+th.numeric {
+  text-align: right;
+}
+
+/* Arrow on the left, so numeric header labels end on the same edge as the digits. */
+th.numeric .sort-button {
+  flex-direction: row-reverse;
+}
+
+.decimal-pad {
+  visibility: hidden;
+  user-select: none;
 }
 
 tbody tr:hover {
-  background: #f6f8fa;
+  background: rgb(255 255 255 / 0.035);
 }
 
-.numeric {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
+tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+/* On wide screens the blotter scrolls within the viewport and keeps its header visible. */
+@media (min-width: 1024px) {
+  .blotter .table-scroll {
+    max-height: calc(100vh - 190px);
+    overflow-y: auto;
+  }
+
+  .blotter th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
 }
 
 .time {
-  color: var(--muted);
+  color: var(--text-muted);
   font-variant-numeric: tabular-nums;
 }
 
 .symbol {
-  font-weight: 600;
+  font-weight: 650;
+  letter-spacing: 0.02em;
 }
 
 .sort-button {
@@ -314,12 +524,12 @@ tbody tr:hover {
 
 .sort-button:hover,
 th[aria-sort] .sort-button {
-  color: #1f2933;
+  color: var(--text);
 }
 
 .sort-indicator {
   font-size: 10px;
-  opacity: 0.35;
+  opacity: 0.4;
 }
 
 .sort-indicator.active {
@@ -328,52 +538,46 @@ th[aria-sort] .sort-button {
 
 .badge {
   display: inline-block;
-  min-width: 42px;
+  min-width: 46px;
   padding: 1px 6px;
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   text-align: center;
   text-transform: uppercase;
   border-radius: 3px;
 }
 
-.badge.buy {
-  color: var(--positive);
-  background: var(--positive-tint);
-}
-
-.badge.sell {
-  color: var(--negative);
-  background: var(--negative-tint);
-}
-
+.badge.buy,
 .badge.long {
   color: var(--positive);
   background: var(--positive-tint);
 }
 
+.badge.sell,
 .badge.short {
   color: var(--negative);
   background: var(--negative-tint);
 }
 
-.positive {
-  color: var(--positive);
-}
-
-.negative {
-  color: var(--negative);
-}
-
-/* A just-booked trade: brief tint that fades out once. */
+/* A just-booked trade: an amber edge marker and faint tint that fade out once. */
 @keyframes new-row {
   0%,
   30% {
-    background-color: #fff4cc;
+    background-color: var(--highlight);
   }
   100% {
     background-color: transparent;
+  }
+}
+
+@keyframes new-row-marker {
+  0%,
+  30% {
+    box-shadow: inset 3px 0 0 var(--highlight-marker);
+  }
+  100% {
+    box-shadow: inset 3px 0 0 transparent;
   }
 }
 
@@ -381,15 +585,19 @@ th[aria-sort] .sort-button {
   animation: new-row 1.8s ease-out;
 }
 
+.row-new > td:first-child {
+  animation: new-row-marker 1.8s ease-out;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .row-new {
+  .row-new,
+  .row-new > td:first-child {
     animation: none;
   }
 }
 
 .empty-state {
-  margin: 0;
-  padding: 24px 0;
+  padding: 28px 0;
   text-align: center;
-  color: var(--muted);
+  color: var(--text-muted);
 }

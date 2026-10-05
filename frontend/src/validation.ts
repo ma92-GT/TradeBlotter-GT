@@ -52,7 +52,7 @@ export function validateTrade(values: TradeFormValues): TradeValidationResult {
   if (!symbol) {
     errors.symbol = 'Symbol is required.'
   } else if (!SYMBOL_PATTERN.test(symbol)) {
-    errors.symbol = "Symbol must be 1-10 letters, digits, '.' or '-', starting with a letter."
+    errors.symbol = "Use 1-10 letters, digits, '.' or '-', starting with a letter."
   }
 
   const side = values.side
@@ -64,14 +64,14 @@ export function validateTrade(values: TradeFormValues): TradeValidationResult {
   if (!values.quantity.trim()) {
     errors.quantity = 'Quantity is required.'
   } else if (quantity === null) {
-    errors.quantity = 'Quantity must be a whole number between 1 and 1,000,000,000.'
+    errors.quantity = 'Whole number, 1 to 1,000,000,000.'
   }
 
   const price = parsePrice(values.price)
   if (!values.price.trim()) {
     errors.price = 'Price is required.'
   } else if (price === null) {
-    errors.price = 'Price must be greater than 0 and at most 1,000,000.'
+    errors.price = 'Greater than 0, up to 1,000,000.'
   }
 
   if (!side || quantity === null || price === null || errors.symbol) {

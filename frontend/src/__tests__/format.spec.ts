@@ -6,6 +6,7 @@ import {
   formatQuantity,
   formatSignedQuantity,
   formatTimestamp,
+  priceDecimalPadding,
 } from '@/format'
 
 describe('formatTimestamp', () => {
@@ -31,6 +32,10 @@ describe('number formatting', () => {
       '$0.0001',
       '$10.6667',
     ])
+  })
+
+  it('pads prices to 4 decimal places so decimal points can align', () => {
+    expect(['$571.30', '$300.125', '$452.6675'].map(priceDecimalPadding)).toEqual(['00', '0', ''])
   })
 
   it('shows average costs with exactly 4 decimal places', () => {
